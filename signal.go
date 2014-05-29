@@ -34,15 +34,23 @@ func Read(name string) int {
 	return s
 }
 
-func WriteNB(name string, v int) {
+func ReadB(name string) int {
+	Wait(Time(0))
+	return Read(name)
+}
+
+func Write(name string, v int) {
 	sv := Signal(name)
 	ssl.Lock()
 	sv.new_var = v
 	ssl.Unlock()
+	if sv.old_var != sv.new_var {
+		sv.Notify()
+	}
 }
 
 func WriteB(name string, v int) {
-	WriteNB(name, v)
+	Write(name, v)
 	Wait(Time(0))
 }
 

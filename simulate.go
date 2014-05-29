@@ -9,6 +9,8 @@ import (
 
 var current_simtime = 0
 
+var stop = true
+
 type TimeDT struct {
 	delay int
 	EventT
@@ -41,11 +43,12 @@ func CurrentTime() int {
 }
 
 func Simulate(delta int) {
+	stop = false
 	max_time := current_simtime + delta
 	for {
 		Schedule()
 		SyncSignals()
-		if len(simtimes) == 0 || (delta >= 0 && max_time <= current_simtime) {
+		if stop || len(simtimes) == 0 || (delta >= 0 && max_time <= current_simtime) {
 			break
 		} else {
 			mt := -1
@@ -67,3 +70,7 @@ func Simulate(delta int) {
 	}
 }
 
+
+func Finish() {
+	stop = true
+}

@@ -2,11 +2,14 @@ package systemgo
 
 import "testing"
 
-func TestSystemgo(t *testing.T) {
+func TestSystemGo(t *testing.T) {
 	Run(-1, func(){
-		//Always(On(Time(1)), func(){
-		//	Info("aaaaaaaa")
-		//})
+		Always(On(Time(1)), func(){
+			Write("aaa", 1)
+		})
+		Always(On(Signal("aaa")), func(){
+			Info("eee %d", ReadB("aaa"))
+		})
 		Initial(func(){
 			Info("hhh")
 			Wait(Event("aaa"), Time(1))
@@ -15,6 +18,8 @@ func TestSystemgo(t *testing.T) {
 			Info("ccc")
 			WriteB("aaa", 1)
 			Info("%d", Read("aaa"))
+			Wait(Time(10))
+			Finish()
 		})
 		Initial(func(){
 			Info("ddd")
