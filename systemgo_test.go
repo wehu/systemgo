@@ -7,7 +7,7 @@ func TestSystemGo(t *testing.T) {
 		Always(On(Time(1)), func(){
 			Write("aaa", Read("aaa") + 1)
 		})
-		for i := 0; i < 1000; i ++ {
+		for i := 0; i < 10; i ++ {
 			Always(On(Signal("aaa")), func(){
 				Info("eee %d", ReadB("aaa"))
 			})
@@ -20,7 +20,7 @@ func TestSystemGo(t *testing.T) {
 			Info("ccc")
 			WriteB("aaa", 1)
 			Info("%d", Read("aaa"))
-			Wait(Time(1000))
+			Wait(Time(100000))
 			Finish()
 		})
 		Initial(func(){

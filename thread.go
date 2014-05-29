@@ -9,18 +9,18 @@ import (
 var tl = new(sync.Mutex)
 
 type Cont struct {
-	ch chan int
+	ch chan bool
 }
 
-var scheduler_ch   = make(chan int)
+var scheduler_ch   = make(chan bool, 1000)
 var cont_q    = make(map[*Cont]*Cont)
 
 func GenCont() *Cont {
-	return &Cont{make(chan int)}
+	return &Cont{make(chan bool)}
 }
 
 func Sleep(c *Cont) {
-	scheduler_ch <- 1
+	scheduler_ch <- true
 	<- c.ch
 }
 
@@ -31,11 +31,11 @@ func Wakeup(c *Cont) {
 }
 
 func terminated() {
-	scheduler_ch <- 1
+	scheduler_ch <- true
 }
 
 func resume(c *Cont) {
-	c.ch <- 1
+	c.ch <- true
 	tl.Lock()
 	delete(cont_q, c)
 	tl.Unlock()
