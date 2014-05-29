@@ -5,11 +5,13 @@ import "testing"
 func TestSystemGo(t *testing.T) {
 	Run(-1, func(){
 		Always(On(Time(1)), func(){
-			Write("aaa", 1)
+			Write("aaa", Read("aaa") + 1)
 		})
-		Always(On(Signal("aaa")), func(){
-			Info("eee %d", ReadB("aaa"))
-		})
+		for i := 0; i < 1000; i ++ {
+			Always(On(Signal("aaa")), func(){
+				Info("eee %d", ReadB("aaa"))
+			})
+		}
 		Initial(func(){
 			Info("hhh")
 			Wait(Event("aaa"), Time(1))
@@ -18,7 +20,7 @@ func TestSystemGo(t *testing.T) {
 			Info("ccc")
 			WriteB("aaa", 1)
 			Info("%d", Read("aaa"))
-			Wait(Time(10))
+			Wait(Time(1000))
 			Finish()
 		})
 		Initial(func(){
