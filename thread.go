@@ -1,44 +1,33 @@
 package systemgo
 
-import (
-	"sync"
-)
-
 // thread
-
-var tl = new(sync.Mutex)
 
 type Cont struct {
 	ch chan bool
 }
 
-var scheduler_ch   = make(chan bool, 1000)
-var cont_q    = make(map[*Cont]*Cont)
+var scheduler_ch   = make(chan *Cont, 1000)
+var cont_q    = make(map[*Cont]*Cont, 100)
 
 func GenCont() *Cont {
 	return &Cont{make(chan bool)}
 }
 
 func Sleep(c *Cont) {
-	scheduler_ch <- true
+	scheduler_ch <- nil
 	<- c.ch
 }
 
 func Wakeup(c *Cont) {
-	tl.Lock()
-	cont_q[c] = c
-	tl.Unlock()
+	scheduler_ch <- c
 }
 
 func terminated() {
-	scheduler_ch <- true
+	scheduler_ch <- nil
 }
 
 func resume(c *Cont) {
 	c.ch <- true
-	tl.Lock()
-	delete(cont_q, c)
-	tl.Unlock()
 }
 
 func Wait(es ...EventIntf) {
@@ -64,7 +53,7 @@ func Wait(es ...EventIntf) {
 
 func New(body func()) {
 	c := GenCont()
-	Wakeup(c)
+	cont_q[c] = c
 	go func() {
 		<- c.ch
 		body()
@@ -73,17 +62,25 @@ func New(body func()) {
 }
 
 func Schedule() {
-	for len(cont_q) > 0 {
-		q := make(map[*Cont]*Cont)
-		for _, c := range cont_q {
-			q[c] = c
+	for g := true; g; {
+		select {
+			case c := <- scheduler_ch : cont_q[c] = c
+			default : g = false
 		}
-		ql := len(q)
-		for _, c := range q {
+	}
+	for len(cont_q) > 0 {
+		ql := len(cont_q)
+		for _, c := range cont_q {
 			resume(c)
 		}
-		for i := 0; i < ql; i ++ {
-			<- scheduler_ch
+		cont_q = make(map[*Cont]*Cont)
+		for i := 0; i < ql; {
+			c := <- scheduler_ch
+			if c == nil {
+				i ++
+			} else {
+				cont_q[c] = c
+			}
 		}
 	}
 }

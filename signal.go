@@ -16,21 +16,25 @@ var signals = make(map[string]*SignalT)
 var ssl = new(sync.Mutex)
 
 func Signal(name string) *SignalT {
-	ssl.Lock()
 	s, ok := signals[name]
+	if ok {
+		return s
+	}
+	ssl.Lock()
+	defer ssl.Unlock()
+	s, ok = signals[name]
 	if !ok {
 	  s = &SignalT{0, 0, EventT{name}}
 	  signals[name] = s
 	}
-	ssl.Unlock()
 	return s
 }
 
 func Read(name string) int {
 	sv := Signal(name)
-	ssl.Lock()
+	//ssl.Lock()
 	s := sv.old_var
-	ssl.Unlock()
+	//ssl.Unlock()
 	return s
 }
 
@@ -41,9 +45,9 @@ func ReadB(name string) int {
 
 func Write(name string, v int) {
 	sv := Signal(name)
-	ssl.Lock()
+	//ssl.Lock()
 	sv.new_var = v
-	ssl.Unlock()
+	//ssl.Unlock()
 	if sv.old_var != sv.new_var {
 		sv.Notify()
 	}

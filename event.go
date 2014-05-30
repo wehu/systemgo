@@ -6,6 +6,8 @@ import (
 
 // event
 
+// assume operations on map for different key are thread safe if only one thread per key.
+
 type EventIntf interface {
 	GetName() string
 	initEventCallbacks()
@@ -28,19 +30,23 @@ func (e EventT) GetName() string {
 }
 
 func (e EventT) initEventCallbacks() {
-	el.Lock()
 	_, ok := events[e]
+	if ok {
+		return
+	}
+	el.Lock()
+	defer el.Unlock()
+	_, ok = events[e]
 	if !ok {
 		events[e] = make(map[*func()]*func())
 	}
-	el.Unlock()
 }
 
 func (e EventT) Subscribe(cb *func()) *func() {
 	e.initEventCallbacks()
-	el.Lock()
+	//el.Lock()
 	events[e][cb] = cb
-	el.Unlock()
+	//el.Unlock()
 	return cb
 }
 
@@ -52,16 +58,16 @@ func (e EventT) Notify() {
 }
 
 func (e EventT) UnSubscribe() {
-	el.Lock()
+	//el.Lock()
 	delete(events, e)
-	el.Unlock()
+	//el.Unlock()
 }
 
 func (e EventT) UnSubscribeCallback(cb *func()) {
 	e.initEventCallbacks()
-	el.Lock()
+	//el.Lock()
 	delete(events[e], cb)
-	el.Unlock()
+	//el.Unlock()
 }
 
 func Event(e string) EventT {

@@ -2,7 +2,7 @@ package systemgo
 
 import (
 	"fmt"
-	"sync"
+//	"sync"
 )
 
 // sim time
@@ -22,7 +22,7 @@ type TimeT struct {
 
 var simtimes = make(map[int]TimeT)
 
-var sl = new(sync.Mutex)
+//var sl = new(sync.Mutex)
 
 func Time(t int) TimeDT {
 	te := TimeDT{t, EventT{fmt.Sprintf("simtimed%d", t)}}
@@ -32,9 +32,9 @@ func Time(t int) TimeDT {
 func addTime(t TimeDT) TimeT {
 	nt := current_simtime + t.delay
 	te := TimeT{EventT{fmt.Sprintf("simtime%d", nt)}}
-	sl.Lock()
+//	sl.Lock()
 	simtimes[nt] = te
-	sl.Unlock()
+//	sl.Unlock()
 	return te
 }
 
