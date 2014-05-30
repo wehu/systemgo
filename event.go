@@ -6,8 +6,6 @@ import (
 
 // event
 
-// assume operations on map for different key are thread safe if only one thread per key.
-
 type EventIntf interface {
 	GetName() string
 	initEventCallbacks()
@@ -19,7 +17,7 @@ type EventIntf interface {
 
 var events = make(map[EventIntf]map[*func()]*func(), InitAllocSize)
 
-var el = new(sync.Mutex)
+var el = new(sync.RWMutex)
 
 type EventT struct {
 	name string
@@ -30,13 +28,9 @@ func (e EventT) GetName() string {
 }
 
 func (e EventT) initEventCallbacks() {
-	_, ok := events[e]
-	if ok {
-		return
-	}
 	el.Lock()
 	defer el.Unlock()
-	_, ok = events[e]
+	_, ok := events[e]
 	if !ok {
 		events[e] = make(map[*func()]*func(), 10)
 	}
@@ -44,33 +38,35 @@ func (e EventT) initEventCallbacks() {
 
 func (e EventT) Subscribe(cb *func()) *func() {
 	e.initEventCallbacks()
-	//el.Lock()
+	el.Lock()
+	defer el.Unlock()
 	events[e][cb] = cb
-	//el.Unlock()
 	return cb
 }
 
 func (e EventT) Notify() {
 	e.initEventCallbacks()
-	for _, cb := range events[e] {
+	el.RLock()
+	cbs := events[e]
+	el.RUnlock()
+	for _, cb := range cbs {
 		(*cb)()
 	}
 }
 
 func (e EventT) UnSubscribe() {
-	//el.Lock()
+	el.Lock()
+	defer el.Unlock()
 	delete(events, e)
-	//el.Unlock()
 }
 
 func (e EventT) UnSubscribeCallback(cb *func()) {
 	e.initEventCallbacks()
-	//el.Lock()
+	el.Lock()
+	defer el.Unlock()
 	delete(events[e], cb)
-	//el.Unlock()
 }
 
 func Event(e string) EventT {
 	return EventT{e}
 }
-

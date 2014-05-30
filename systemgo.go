@@ -11,7 +11,7 @@ func Initial(body func()) {
 }
 
 func Always(es []EventIntf, body func()) {
-	New(func(){
+	New(func() {
 		for {
 			Wait(es...)
 			body()
@@ -23,7 +23,7 @@ func On(es ...EventIntf) []EventIntf {
 	return es
 }
 
-func Run(t int, body func()){
+func Run(t int, body func()) {
 	body()
 	fmt.Printf("Simulation start\n")
 	Simulate(t)

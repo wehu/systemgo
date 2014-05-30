@@ -6,8 +6,8 @@ type Cont struct {
 	ch chan bool
 }
 
-var scheduler_ch   = make(chan *Cont, InitAllocSize)
-var cont_q    = make(map[*Cont]*Cont, InitAllocSize)
+var scheduler_ch = make(chan *Cont, InitAllocSize)
+var cont_q = make(map[*Cont]*Cont, InitAllocSize)
 
 var running = false
 
@@ -17,7 +17,7 @@ func GenCont() *Cont {
 
 func Sleep(c *Cont) {
 	scheduler_ch <- nil
-	<- c.ch
+	<-c.ch
 }
 
 func Wakeup(c *Cont) {
@@ -39,19 +39,23 @@ func resume(c *Cont) {
 func Wait(es ...EventIntf) {
 	c := GenCont()
 	var cb func()
-	cb = func () {
+	cb = func() {
 		for _, e := range es {
 			switch e.(type) {
-				case TimeDT: addTime(e.(TimeDT)).UnSubscribeCallback(&cb)
-				default: e.UnSubscribeCallback(&cb)
+			case TimeDT:
+				addTime(e.(TimeDT)).UnSubscribeCallback(&cb)
+			default:
+				e.UnSubscribeCallback(&cb)
 			}
 			Wakeup(c)
 		}
 	}
 	for _, e := range es {
 		switch e.(type) {
-			case TimeDT: addTime(e.(TimeDT)).Subscribe(&cb)
-			default: e.Subscribe(&cb)
+		case TimeDT:
+			addTime(e.(TimeDT)).Subscribe(&cb)
+		default:
+			e.Subscribe(&cb)
 		}
 	}
 	Sleep(c)
@@ -61,7 +65,7 @@ func New(body func()) {
 	c := GenCont()
 	cont_q[c] = c
 	go func() {
-		<- c.ch
+		<-c.ch
 		body()
 		terminated()
 	}()
@@ -71,8 +75,10 @@ func Schedule() {
 	running = true
 	for g := true; g; {
 		select {
-			case c := <- scheduler_ch : cont_q[c] = c
-			default : g = false
+		case c := <-scheduler_ch:
+			cont_q[c] = c
+		default:
+			g = false
 		}
 	}
 	for len(cont_q) > 0 {
@@ -82,9 +88,9 @@ func Schedule() {
 		}
 		cont_q = make(map[*Cont]*Cont, InitAllocSize)
 		for i := 0; i < ql; {
-			c := <- scheduler_ch
+			c := <-scheduler_ch
 			if c == nil {
-				i ++
+				i++
 			} else {
 				cont_q[c] = c
 			}
@@ -92,4 +98,3 @@ func Schedule() {
 	}
 	running = false
 }
-

@@ -16,16 +16,12 @@ var signals = make(map[string]*SignalT, InitAllocSize)
 var ssl = new(sync.Mutex)
 
 func Signal(name string) *SignalT {
-	s, ok := signals[name]
-	if ok {
-		return s
-	}
 	ssl.Lock()
 	defer ssl.Unlock()
-	s, ok = signals[name]
+	s, ok := signals[name]
 	if !ok {
-	  s = &SignalT{0, 0, EventT{name}}
-	  signals[name] = s
+		s = &SignalT{0, 0, EventT{name}}
+		signals[name] = s
 	}
 	return s
 }

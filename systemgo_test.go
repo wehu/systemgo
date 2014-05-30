@@ -5,18 +5,18 @@ import "runtime/pprof"
 import "os"
 
 func TestSystemGo(t *testing.T) {
-    f, _ := os.Create("cpu.prof")
-    pprof.StartCPUProfile(f)
-	Run(-1, func(){
-		Always(On(Time(1)), func(){
-			Write("aaa", Read("aaa") + 1)
+	f, _ := os.Create("cpu.prof")
+	pprof.StartCPUProfile(f)
+	Run(-1, func() {
+		Always(On(Time(1)), func() {
+			Write("aaa", Read("aaa")+1)
 		})
-		for i := 0; i < 10; i ++ {
-			Always(On(Signal("aaa")), func(){
+		for i := 0; i < 10; i++ {
+			Always(On(Signal("aaa")), func() {
 				Info("eee %d", ReadB("aaa"))
 			})
 		}
-		Initial(func(){
+		Initial(func() {
 			Info("hhh")
 			Wait(Event("aaa"), Time(1))
 			Info("bbb")
@@ -27,10 +27,10 @@ func TestSystemGo(t *testing.T) {
 			Wait(Time(100000))
 			Finish()
 		})
-		Initial(func(){
+		Initial(func() {
 			Info("ddd")
 			Event("aaa").Notify()
 		})
 	})
-   pprof.StopCPUProfile()
+	pprof.StopCPUProfile()
 }
