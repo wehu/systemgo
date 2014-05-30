@@ -7,7 +7,9 @@ type Cont struct {
 }
 
 var scheduler_ch   = make(chan *Cont, 1000)
-var cont_q    = make(map[*Cont]*Cont, 100)
+var cont_q    = make(map[*Cont]*Cont)
+
+var running = false
 
 func GenCont() *Cont {
 	return &Cont{make(chan bool)}
@@ -19,7 +21,11 @@ func Sleep(c *Cont) {
 }
 
 func Wakeup(c *Cont) {
-	scheduler_ch <- c
+	if running {
+		scheduler_ch <- c
+	} else {
+		cont_q[c] = c
+	}
 }
 
 func terminated() {
@@ -62,6 +68,7 @@ func New(body func()) {
 }
 
 func Schedule() {
+	running = true
 	for g := true; g; {
 		select {
 			case c := <- scheduler_ch : cont_q[c] = c
@@ -83,5 +90,6 @@ func Schedule() {
 			}
 		}
 	}
+	running = false
 }
 
