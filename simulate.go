@@ -20,7 +20,7 @@ type TimeT struct {
 	EventT
 }
 
-var simtimes = make(map[int]TimeT)
+var simtimes = make(map[int]TimeT, InitAllocSize)
 
 //var sl = new(sync.Mutex)
 

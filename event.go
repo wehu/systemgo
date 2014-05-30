@@ -17,7 +17,7 @@ type EventIntf interface {
 	UnSubscribeCallback(*func())
 }
 
-var events = make(map[EventIntf]map[*func()]*func())
+var events = make(map[EventIntf]map[*func()]*func(), InitAllocSize)
 
 var el = new(sync.Mutex)
 
@@ -38,7 +38,7 @@ func (e EventT) initEventCallbacks() {
 	defer el.Unlock()
 	_, ok = events[e]
 	if !ok {
-		events[e] = make(map[*func()]*func())
+		events[e] = make(map[*func()]*func(), 10)
 	}
 }
 

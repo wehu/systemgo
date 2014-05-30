@@ -6,8 +6,8 @@ type Cont struct {
 	ch chan bool
 }
 
-var scheduler_ch   = make(chan *Cont, 1000)
-var cont_q    = make(map[*Cont]*Cont)
+var scheduler_ch   = make(chan *Cont, InitAllocSize)
+var cont_q    = make(map[*Cont]*Cont, InitAllocSize)
 
 var running = false
 
@@ -80,7 +80,7 @@ func Schedule() {
 		for _, c := range cont_q {
 			resume(c)
 		}
-		cont_q = make(map[*Cont]*Cont)
+		cont_q = make(map[*Cont]*Cont, InitAllocSize)
 		for i := 0; i < ql; {
 			c := <- scheduler_ch
 			if c == nil {

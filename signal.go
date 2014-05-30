@@ -12,7 +12,7 @@ type SignalT struct {
 	EventT
 }
 
-var signals = make(map[string]*SignalT)
+var signals = make(map[string]*SignalT, InitAllocSize)
 var ssl = new(sync.Mutex)
 
 func Signal(name string) *SignalT {
